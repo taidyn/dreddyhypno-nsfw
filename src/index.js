@@ -2,7 +2,7 @@ const PASSWORD = "DreddyOwnsMe";
 const COOKIE_NAME = "dh_auth";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-// ← Replace these with your real GitHub raw links
+// ← Put your real GitHub raw video links here
 const VIDEOS = [
   {
     id: "1",
@@ -25,27 +25,30 @@ export default {
   async fetch(request) {
     const url = new URL(request.url);
     const path = url.pathname;
-    const cookie = request.headers.get("Cookie") || "";
-    const isAuthed = cookie.includes(`${COOKIE_NAME}=1`);
+    const cookieHeader = request.headers.get("Cookie") || "";
+    const isAuthed = cookieHeader.includes(`${COOKIE_NAME}=1`);
 
-    // Login page (GET)
+    // ===== LOGIN PAGE =====
     if (path === "/login" || path === "/login/") {
-      return new Response(loginPage(), {
-        headers: { "Content-Type": "text/html;charset=UTF-8" },
-      });
-    }
+      // If already logged in, go to home
+      if (isAuthed) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: "/" },
+        });
+      }
 
-    // Login form submit (POST)
-    if ((path === "/login" || path === "/login/") && request.method === "POST") {
-      try {
+      // Handle form submission
+      if (request.method === "POST") {
         const form = await request.formData();
         const password = (form.get("password") || "").toString().trim();
 
         if (password === PASSWORD) {
-          return new Response(null, {
-            status: 302,
+          // Success → set cookie and show home page immediately
+          return new Response(homePage(), {
+            status: 200,
             headers: {
-              Location: "/",
+              "Content-Type": "text/html;charset=UTF-8",
               "Set-Cookie": `${COOKIE_NAME}=1; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax`,
             },
           });
@@ -55,14 +58,15 @@ export default {
         return new Response(loginPage(true), {
           headers: { "Content-Type": "text/html;charset=UTF-8" },
         });
-      } catch (err) {
-        return new Response(loginPage(true), {
-          headers: { "Content-Type": "text/html;charset=UTF-8" },
-        });
       }
+
+      // Normal GET → show login form
+      return new Response(loginPage(false), {
+        headers: { "Content-Type": "text/html;charset=UTF-8" },
+      });
     }
 
-    // Logout
+    // ===== LOGOUT =====
     if (path === "/logout") {
       return new Response(null, {
         status: 302,
@@ -73,7 +77,7 @@ export default {
       });
     }
 
-    // Force login if not authenticated
+    // ===== PROTECTED ROUTES =====
     if (!isAuthed) {
       return new Response(null, {
         status: 302,
@@ -81,7 +85,7 @@ export default {
       });
     }
 
-    // Home page
+    // Home
     if (path === "/" || path === "") {
       return new Response(homePage(), {
         headers: { "Content-Type": "text/html;charset=UTF-8" },
