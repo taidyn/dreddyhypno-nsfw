@@ -1,5 +1,5 @@
 {
-  "name": "dreddyhypno-site",
+  "name": "www",
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
