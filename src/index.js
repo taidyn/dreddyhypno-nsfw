@@ -7,17 +7,17 @@ const VIDEOS = [
   {
     id: "1",
     title: "A Pathetic Quickshot",
-    src: "https://YOUR-R2-PUBLIC-URL/APatheticQuickshot2.mp4",
+    src: "https://raw.githubusercontent.com/taidyn/dreddyhypno-nsfw/main/videos/APatheticQuickshot2.mp4",
   },
   {
     id: "2",
     title: "Getting Needier",
-    src: "https://YOUR-R2-PUBLIC-URL/GettingNeedier2.mp4",
+    src: "https://raw.githubusercontent.com/taidyn/dreddyhypno-nsfw/main/videos/GettingNeedier2.mp4",
   },
   {
     id: "3",
     title: "Helplessly Texting",
-    src: "https://YOUR-R2-PUBLIC-URL/HelplesslyTexting2.mp4",
+    src: "https://raw.githubusercontent.com/taidyn/dreddyhypno-nsfw/main/videos/HelplesslyTexting2.mp4",
   },
 ];
 
