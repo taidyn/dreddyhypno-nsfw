@@ -17,7 +17,7 @@ const VIDEOS = [
   {
     id: "3",
     title: "Helplessly Texting",
-    src: "https://raw.githubusercontent.com/taidyn/dreddyhypno-nsfw/main/videos/HelplesslyTexting.mp4",
+    src: "https://raw.githubusercontent.com/taidyn/dreddyhypno-nsfw/main/videos/HelplesslyTexting2.mp4",
   },
 ];
 
