@@ -1,24 +1,23 @@
-// Cloudflare Worker - DreddyHypno private site
-
-const PASSWORD = "change-me";          // ← change this
+const PASSWORD = "DreddyOwnsMe";
 const COOKIE_NAME = "dh_auth";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
+// ← Replace these three URLs with your R2 public links after you upload the videos
 const VIDEOS = [
   {
     id: "1",
-    title: "Video 1",
-    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", // replace
+    title: "A Pathetic Quickshot",
+    src: "https://YOUR-R2-PUBLIC-URL/APatheticQuickshot2.mp4",
   },
   {
     id: "2",
-    title: "Video 2",
-    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm", // replace
+    title: "Getting Needier",
+    src: "https://YOUR-R2-PUBLIC-URL/GettingNeedier2.mp4",
   },
   {
     id: "3",
-    title: "Video 3",
-    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", // replace
+    title: "Helplessly Texting",
+    src: "https://YOUR-R2-PUBLIC-URL/HelplesslyTexting2.mp4",
   },
 ];
 
@@ -28,7 +27,7 @@ export default {
     const cookie = request.headers.get("Cookie") || "";
     const isAuthed = cookie.includes(`${COOKIE_NAME}=1`);
 
-    // Login form
+    // Login
     if (url.pathname === "/login" && request.method === "POST") {
       const form = await request.formData();
       if (form.get("password") === PASSWORD) {
@@ -45,7 +44,7 @@ export default {
       });
     }
 
-    // Require auth for everything except login
+    // Force login
     if (!isAuthed && url.pathname !== "/login") {
       return new Response(null, {
         status: 302,
@@ -71,10 +70,10 @@ export default {
       });
     }
 
-    // Individual video
-    const videoMatch = url.pathname.match(/^\/v\/(\d+)$/);
-    if (videoMatch) {
-      const video = VIDEOS.find(v => v.id === videoMatch[1]);
+    // Video pages
+    const match = url.pathname.match(/^\/v\/(\d+)$/);
+    if (match) {
+      const video = VIDEOS.find(v => v.id === match[1]);
       if (video) {
         return new Response(videoPage(video), {
           headers: { "Content-Type": "text/html;charset=UTF-8" },
@@ -94,17 +93,28 @@ function loginPage(wrong = false) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Access</title>
   <style>
-    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-           background:#0a0a0a; color:#eee; font-family:system-ui,sans-serif; }
-    form { background:#161616; padding:2.5rem; border-radius:12px; width:min(90vw,340px);
-           box-shadow:0 0 40px rgba(0,0,0,.6); }
-    h1 { margin:0 0 1.5rem; font-size:1.4rem; text-align:center; }
-    input { width:100%; padding:.9rem 1rem; margin-bottom:1rem; border:1px solid #333;
-            border-radius:8px; background:#222; color:#fff; font-size:1rem; box-sizing:border-box; }
-    button { width:100%; padding:.9rem; border:none; border-radius:8px; background:#c44;
-             color:#fff; font-size:1rem; cursor:pointer; font-weight:600; }
-    button:hover { background:#e55; }
-    .error { color:#f66; text-align:center; margin-bottom:1rem; font-size:.9rem; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: #0a0a0a; color: #eee; font-family: system-ui, -apple-system, sans-serif;
+    }
+    form {
+      background: #161616; padding: 2.5rem; border-radius: 16px; width: min(90vw, 360px);
+      box-shadow: 0 0 60px rgba(0,0,0,.7);
+    }
+    h1 { margin: 0 0 1.8rem; font-size: 1.4rem; text-align: center; font-weight: 600; }
+    input {
+      width: 100%; padding: 1rem 1.1rem; margin-bottom: 1.2rem;
+      border: 1px solid #333; border-radius: 10px; background: #222; color: #fff;
+      font-size: 1.05rem;
+    }
+    input:focus { outline: none; border-color: #c44; }
+    button {
+      width: 100%; padding: 1rem; border: none; border-radius: 10px;
+      background: #c44; color: #fff; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+    }
+    button:hover { background: #e55; }
+    .error { color: #f66; text-align: center; margin-bottom: 1.2rem; font-size: .95rem; }
   </style>
 </head>
 <body>
@@ -132,20 +142,29 @@ function homePage() {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>DreddyHypno</title>
   <style>
-    body { margin:0; background:#0a0a0a; color:#eee; font-family:system-ui,sans-serif; }
-    header { display:flex; justify-content:space-between; align-items:center;
-             padding:1.2rem 1.5rem; border-bottom:1px solid #222; }
-    h1 { margin:0; font-size:1.3rem; }
-    a.logout { color:#888; text-decoration:none; font-size:.9rem; }
-    a.logout:hover { color:#ccc; }
-    main { max-width:900px; margin:2rem auto; padding:0 1rem;
-           display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.5rem; }
-    .card { background:#161616; border-radius:12px; overflow:hidden; text-decoration:none;
-            color:inherit; transition:transform .15s, box-shadow .15s; }
-    .card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(0,0,0,.5); }
-    .thumb { height:140px; background:#222; display:flex; align-items:center; justify-content:center;
-             font-size:2.5rem; color:#555; }
-    .title { padding:1rem; font-weight:500; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0a0a0a; color: #eee; font-family: system-ui, -apple-system, sans-serif; }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.3rem 1.6rem; border-bottom: 1px solid #222;
+    }
+    h1 { margin: 0; font-size: 1.35rem; font-weight: 600; }
+    a.logout { color: #888; text-decoration: none; font-size: .95rem; }
+    a.logout:hover { color: #ccc; }
+    main {
+      max-width: 960px; margin: 2.5rem auto; padding: 0 1.2rem;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.6rem;
+    }
+    .card {
+      background: #161616; border-radius: 14px; overflow: hidden; text-decoration: none;
+      color: inherit; transition: transform .18s, box-shadow .18s;
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,.55); }
+    .thumb {
+      height: 160px; background: #222; display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem; color: #555;
+    }
+    .title { padding: 1.15rem 1.3rem; font-weight: 500; font-size: 1.05rem; }
   </style>
 </head>
 <body>
@@ -166,14 +185,26 @@ function videoPage(video) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${video.title}</title>
   <style>
-    body { margin:0; background:#000; color:#eee; font-family:system-ui,sans-serif;
-           display:flex; flex-direction:column; height:100vh; }
-    header { display:flex; justify-content:space-between; align-items:center;
-             padding:.8rem 1.2rem; background:#111; }
-    a { color:#aaa; text-decoration:none; }
-    a:hover { color:#fff; }
-    .player { flex:1; display:flex; align-items:center; justify-content:center; }
-    video { max-width:100%; max-height:100%; outline:none; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #000; color: #eee;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex; flex-direction: column; height: 100vh;
+    }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .9rem 1.3rem; background: #111; flex-shrink: 0;
+    }
+    a { color: #aaa; text-decoration: none; }
+    a:hover { color: #fff; }
+    .player {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: #000; overflow: hidden;
+    }
+    video {
+      max-width: 100%; max-height: 100%; width: auto; height: auto;
+      outline: none;
+    }
   </style>
 </head>
 <body>
@@ -183,7 +214,14 @@ function videoPage(video) {
     <a href="/logout">Logout</a>
   </header>
   <div class="player">
-    <video src="${video.src}" autoplay loop controls playsinline></video>
+    <video 
+      src="${video.src}" 
+      autoplay 
+      loop 
+      controls 
+      playsinline
+      preload="auto">
+    </video>
   </div>
 </body>
 </html>`;
