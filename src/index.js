@@ -36,24 +36,30 @@ export default {
     }
 
     // Login form submit (POST)
-    if (path === "/login" && request.method === "POST") {
-      const form = await request.formData();
-      const password = form.get("password");
+    if ((path === "/login" || path === "/login/") && request.method === "POST") {
+      try {
+        const form = await request.formData();
+        const password = (form.get("password") || "").toString().trim();
 
-      if (password === PASSWORD) {
-        return new Response(null, {
-          status: 302,
-          headers: {
-            Location: "/",
-            "Set-Cookie": `${COOKIE_NAME}=1; Path=/; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
-          },
+        if (password === PASSWORD) {
+          return new Response(null, {
+            status: 302,
+            headers: {
+              Location: "/",
+              "Set-Cookie": `${COOKIE_NAME}=1; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax`,
+            },
+          });
+        }
+
+        // Wrong password
+        return new Response(loginPage(true), {
+          headers: { "Content-Type": "text/html;charset=UTF-8" },
+        });
+      } catch (err) {
+        return new Response(loginPage(true), {
+          headers: { "Content-Type": "text/html;charset=UTF-8" },
         });
       }
-
-      // Wrong password
-      return new Response(loginPage(true), {
-        headers: { "Content-Type": "text/html;charset=UTF-8" },
-      });
     }
 
     // Logout
