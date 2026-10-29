@@ -7,17 +7,17 @@ const VIDEOS = [
   {
     id: "1",
     title: "A Pathetic Quickshot",
-    src: "/videos/APatheticQuickshot.mp4",
+    src: "/videos/APatheticQuickshot2.mp4",
   },
   {
     id: "2",
     title: "Getting Needier",
-    src: "/videos/GettingNeedier.mp4",
+    src: "/videos/GettingNeedier2.mp4",
   },
   {
     id: "3",
     title: "Helplessly Texting",
-    src: "/videos/HelplesslyTexting.mp4",
+    src: "/videos/HelplesslyTexting2.mp4",
   },
 ];
 
