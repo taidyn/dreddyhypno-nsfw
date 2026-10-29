@@ -27,7 +27,7 @@ const VIDEOS = [
   {
     id: "5",
     title: "Diaper Encouragement",
-    src: "/videos/HelplesslyTexting2.mp4",
+    src: "/videos/DiaperHypno.mp4",
   },
 ];
 
