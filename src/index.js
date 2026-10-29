@@ -1,66 +1,98 @@
-const PASSWORD = "DreddyOwnsMe";
+// PASSWORD now comes from a Worker secret (env.PASSWORD), not from this file.
 const COOKIE_NAME = "dh_auth";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-// ← Put your real GitHub raw video links here
+// Files live in public/videos/ in your repo. Names are case-sensitive.
 const VIDEOS = [
   {
     id: "1",
     title: "A Pathetic Quickshot",
-    src: "/proxy-video/APatheticQuickshot.mp4",
+    src: "/videos/APatheticQuickshot.mp4",
   },
   {
     id: "2",
     title: "Getting Needier",
-    src: "videos/GettingNeedier.mp4",
+    src: "/videos/GettingNeedier.mp4",
   },
   {
     id: "3",
     title: "Helplessly Texting",
-    src: "videos/HelplesslyTexting.mp4",
+    src: "/videos/HelplesslyTexting.mp4",
   },
 ];
 
+// ===== AUTH HELPERS =====
+
+// Signed token derived from the password. Can't be forged without knowing it.
+async function makeToken(secret) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode("dh_auth_v1"));
+  return [...new Uint8Array(sig)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function getCookie(request, name) {
+  const header = request.headers.get("Cookie") || "";
+  for (const part of header.split(";")) {
+    const [k, ...rest] = part.trim().split("=");
+    if (k === name) return rest.join("=");
+  }
+  return "";
+}
+
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
+    if (!env.PASSWORD) {
+      return new Response("Server not configured: set the PASSWORD secret.", {
+        status: 500,
+      });
+    }
+
     const url = new URL(request.url);
     const path = url.pathname;
-    const cookieHeader = request.headers.get("Cookie") || "";
-    const isAuthed = cookieHeader.includes(`${COOKIE_NAME}=1`);
+    const token = await makeToken(env.PASSWORD);
+    const isAuthed = safeEqual(getCookie(request, COOKIE_NAME), token);
 
     // ===== LOGIN PAGE =====
     if (path === "/login" || path === "/login/") {
-      // If already logged in, go to home
       if (isAuthed) {
-        return new Response(null, {
-          status: 302,
-          headers: { Location: "/" },
-        });
+        return new Response(null, { status: 302, headers: { Location: "/" } });
       }
 
-      // Handle form submission
       if (request.method === "POST") {
         const form = await request.formData();
         const password = (form.get("password") || "").toString().trim();
 
-        if (password === PASSWORD) {
-          // Success → set cookie and show home page immediately
-          return new Response(homePage(), {
-            status: 200,
+        if (safeEqual(password, env.PASSWORD)) {
+          return new Response(null, {
+            status: 302,
             headers: {
-              "Content-Type": "text/html;charset=UTF-8",
-              "Set-Cookie": `${COOKIE_NAME}=1; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax`,
+              Location: "/",
+              "Set-Cookie": `${COOKIE_NAME}=${token}; Path=/; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
             },
           });
         }
 
-        // Wrong password
         return new Response(loginPage(true), {
           headers: { "Content-Type": "text/html;charset=UTF-8" },
         });
       }
 
-      // Normal GET → show login form
       return new Response(loginPage(false), {
         headers: { "Content-Type": "text/html;charset=UTF-8" },
       });
@@ -72,17 +104,19 @@ export default {
         status: 302,
         headers: {
           Location: "/login",
-          "Set-Cookie": `${COOKIE_NAME}=; Path=/; Max-Age=0`,
+          "Set-Cookie": `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
         },
       });
     }
 
     // ===== PROTECTED ROUTES =====
     if (!isAuthed) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: "/login" },
-      });
+      return new Response(null, { status: 302, headers: { Location: "/login" } });
+    }
+
+    // Video files: served from static assets, only after the auth check above
+    if (path.startsWith("/videos/")) {
+      return env.ASSETS.fetch(request);
     }
 
     // Home
@@ -142,7 +176,7 @@ function loginPage(wrong = false) {
 <body>
   <form method="POST" action="/login">
     <h1>Private Access</h1>
-    ${wrong ? '<div class="error">Wrong password</div>' : ''}
+    ${wrong ? '<div class="error">Wrong password</div>' : ""}
     <input type="password" name="password" placeholder="Password" autofocus required>
     <button type="submit">Enter</button>
   </form>
@@ -237,11 +271,11 @@ function videoPage(video) {
     <a href="/logout">Logout</a>
   </header>
   <div class="player">
-    <video 
-      src="${video.src}" 
-      autoplay 
-      loop 
-      controls 
+    <video
+      src="${video.src}"
+      autoplay
+      loop
+      controls
       playsinline
       preload="auto">
     </video>
