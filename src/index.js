@@ -7,7 +7,7 @@ const VIDEOS = [
   {
     id: "1",
     title: "A Pathetic Quickshot",
-    src: "/videos/APatheticQuickshot2.mp4",
+    src: "/videos/APatheticQuickshot.mp4",
   },
   {
     id: "2",
@@ -132,6 +132,17 @@ export default {
       const video = VIDEOS.find((v) => v.id === match[1]);
       if (video) {
         return new Response(videoPage(video), {
+          headers: { "Content-Type": "text/html;charset=UTF-8" },
+        });
+      }
+    }
+
+    // VR pages
+    const vrMatch = path.match(/^\/vr\/(\d+)\/?$/);
+    if (vrMatch) {
+      const video = VIDEOS.find((v) => v.id === vrMatch[1]);
+      if (video) {
+        return new Response(vrPage(video), {
           headers: { "Content-Type": "text/html;charset=UTF-8" },
         });
       }
@@ -268,7 +279,7 @@ function videoPage(video) {
   <header>
     <a href="/">← Home</a>
     <span>${video.title}</span>
-    <a href="/logout">Logout</a>
+    <span><a href="/vr/${video.id}">🥽 VR</a> &nbsp; <a href="/logout">Logout</a></span>
   </header>
   <div class="player">
     <video
@@ -280,6 +291,89 @@ function videoPage(video) {
       preload="auto">
     </video>
   </div>
+</body>
+</html>`;
+}
+
+function vrPage(video) {
+  // Add  vr: "360"  to a video in VIDEOS to play it as a 360 video instead of a flat screen.
+  const sphere = video.vr === "360";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${video.title} (VR)</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <style>
+    #start {
+      position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1rem; padding: 1rem;
+      background: rgba(0,0,0,.85); color: #eee; font-family: system-ui, sans-serif; text-align: center;
+    }
+    #start button {
+      padding: .9rem 1.6rem; border: 0; border-radius: 10px; background: #c44;
+      color: #fff; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+    }
+    #start a { color: #888; }
+  </style>
+</head>
+<body>
+  <div id="start">
+    <h2>${video.title}</h2>
+    <p>Press the VR button at the bottom right to enter.<br>A = home &nbsp;·&nbsp; B = pause</p>
+    <button id="play2d">Preview in browser</button>
+    <a href="/v/${video.id}">← Back</a>
+  </div>
+
+  <a-scene vr-mode-ui="enabled: true" background="color: #000">
+    <a-assets>
+      <video id="vid" src="${video.src}" loop playsinline webkit-playsinline preload="auto"></video>
+    </a-assets>
+
+    <!-- Everything inside the camera follows the head, so the video is always in view -->
+    <a-entity camera look-controls position="0 1.6 0">
+      ${sphere ? "" : `<a-video src="#vid" width="4" height="2.25" position="0 0 -2.5"></a-video>`}
+      <a-text id="paused" value="Paused" align="center" color="#fff" width="2" position="0 0 -2.4" visible="false"></a-text>
+    </a-entity>
+    ${sphere ? `<a-videosphere src="#vid"></a-videosphere>` : ""}
+
+    <a-entity id="left" oculus-touch-controls="hand: left; model: false"></a-entity>
+    <a-entity id="right" oculus-touch-controls="hand: right; model: false"></a-entity>
+  </a-scene>
+
+  <script>
+    const v = document.getElementById("vid");
+    const label = document.getElementById("paused");
+    const scene = document.querySelector("a-scene");
+    const start = document.getElementById("start");
+
+    function togglePause() {
+      if (v.paused) { v.play(); label.setAttribute("visible", false); }
+      else { v.pause(); label.setAttribute("visible", true); }
+    }
+
+    function goHome() {
+      try { scene.exitVR(); } catch (e) {}
+      location.href = "/";
+    }
+
+    function begin() {
+      start.style.display = "none";
+      v.play().catch(function () {});
+    }
+
+    scene.addEventListener("enter-vr", begin);
+    document.getElementById("play2d").addEventListener("click", begin);
+
+    // Right controller: A = home, B = pause. Left controller: X = home, Y = pause.
+    const right = document.getElementById("right");
+    const left = document.getElementById("left");
+    right.addEventListener("abuttondown", goHome);
+    right.addEventListener("bbuttondown", togglePause);
+    left.addEventListener("xbuttondown", goHome);
+    left.addEventListener("ybuttondown", togglePause);
+  </script>
 </body>
 </html>`;
 }
