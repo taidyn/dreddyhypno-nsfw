@@ -1,8 +1,6 @@
 name = "www"
 main = "src/index.js"
-compatibility_date = "2024-11-01"
+compatibility_date = "2025-01-01"
 
-# Optional: custom domain later
-# routes = [
-#   { pattern = "yourdomain.com/*", zone_name = "yourdomain.com" }
-# ]
+[assets]
+directory = "./public"
