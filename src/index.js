@@ -7,7 +7,7 @@ const VIDEOS = [
   {
     id: "1",
     title: "A Pathetic Quickshot",
-    src: "/videos/APatheticQuickshot.mp4",
+    src: "/videos/APatheticQuickshot2.mp4",
   },
   {
     id: "2",
