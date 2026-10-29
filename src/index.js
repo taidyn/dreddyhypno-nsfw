@@ -19,6 +19,16 @@ const VIDEOS = [
     title: "Helplessly Texting",
     src: "/videos/HelplesslyTexting2.mp4",
   },
+  {
+    id: "4",
+    title: "Something's wrong with your computer..",
+    src: "/videos/Hypno.mp4",
+  },
+  {
+    id: "5",
+    title: "Diaper Encouragement",
+    src: "/videos/HelplesslyTexting2.mp4",
+  },
 ];
 
 // ===== AUTH HELPERS =====
