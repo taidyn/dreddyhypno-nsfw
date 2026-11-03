@@ -29,6 +29,11 @@ const VIDEOS = [
     title: "Diaper Encouragement",
     src: "/videos/DiaperHypno.mp4",
   },
+  {
+    id: "6",
+    title: "Drone Yourself",
+    src: "/videos/Drone It Self.mp4",
+  },
 ];
 
 // ===== AUTH HELPERS =====
