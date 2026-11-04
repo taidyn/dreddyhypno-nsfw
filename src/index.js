@@ -34,6 +34,21 @@ const VIDEOS = [
     title: "Drone Yourself",
     src: "/videos/Drone It Self.mp4",
   },
+  {
+    id: "7",
+    title: "Gamer Hypnosis",
+    src: "/videos/Gamer Hypnosis.mp4",
+  },
+  {
+    id: "8",
+    title: "Visor Hypnosis",
+    src: "/videos/Visor Hypnosis.mp4",
+  },
+  {
+    id: "9",
+    title: "Force Fem Hypnosis",
+    src: "/videos/Force Fem Hypnosis.mp4",
+  },
 ];
 
 // ===== AUTH HELPERS =====
