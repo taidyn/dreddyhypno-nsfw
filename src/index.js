@@ -49,6 +49,11 @@ const VIDEOS = [
     title: "Force Fem Hypnosis",
     src: "/videos/Force Fem Hypnosis.mp4",
   },
+  {
+    id: "10",
+    title: "Self Wedgie Hypnosis",
+    src: "/videos/SelfWedgieHypnosis.mp4",
+  },
 ];
 
 // ===== AUTH HELPERS =====
